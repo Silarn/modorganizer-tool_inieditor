@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with Ini editor plugin.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "inieditor.h"
 
 #include "iplugingame.h"
@@ -30,9 +29,7 @@ along with Ini editor plugin.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QApplication>
 
-
 using namespace MOBase;
-
 
 IniEditor::IniEditor()
   : m_MOInfo(nullptr)
@@ -73,9 +70,14 @@ bool IniEditor::isActive() const
 QList<PluginSetting> IniEditor::settings() const
 {
   QList<PluginSetting> result;
-  result.push_back(PluginSetting("external", "Use an external editor to open the files", QVariant(false)));
-  result.push_back(PluginSetting("associated", "When using an external editor, use the application associated with \"ini\" files. "
-                                 "If false, uses the \"edit\" command which usually invokes regular notepad.", QVariant(true)));
+  result.push_back(PluginSetting(
+      "external", "Use an external editor to open the files", QVariant(false)));
+  result.push_back(PluginSetting("associated",
+                                 "When using an external editor, use the "
+                                 "application associated with \"ini\" files. "
+                                 "If false, uses the \"edit\" command which "
+                                 "usually invokes regular notepad.",
+                                 QVariant(true)));
   return result;
 }
 
@@ -103,27 +105,31 @@ void IniEditor::display() const
   QStringList iniFiles = m_MOInfo->managedGame()->iniFiles();
   if (m_MOInfo->pluginSetting(name(), "external").toBool()) {
     for (QString const &file : iniFiles) {
-      QString fileName = QString("%1/profiles/%2/%3").arg(qApp->property("dataPath").toString())
-                                                     .arg(m_MOInfo->profileName())
-                                                     .arg(file);
-      ::ShellExecuteW(nullptr,m_MOInfo->pluginSetting(name(), "associated").toBool() ? L"open" : L"edit",
-                      ToWString(fileName).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+
+      QString fileName
+          = QString("%1/%2").arg(m_MOInfo->profilePath()).arg(file);
+      ::ShellExecuteW(
+          nullptr,
+          m_MOInfo->pluginSetting(name(), "associated").toBool() ? L"open"
+                                                                 : L"edit",
+          ToWString(fileName).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
   } else {
     TextViewer *viewer = new TextViewer("Ini Files", parentWidget());
-    viewer->setDescription(tr("Ini files are local to the currently selected profile."));
+    viewer->setDescription(
+        tr("Ini files are local to the currently selected profile."));
     for (QString const &file : iniFiles) {
-      QString fileName = QString("%1/profiles/%2/%3").arg(qApp->property("dataPath").toString())
-                                                     .arg(m_MOInfo->profileName())
-                                                     .arg(file);
+      QString fileName
+          = QString("%1/%2").arg(m_MOInfo->profilePath()).arg(file);
       QFileInfo fileInfo(fileName);
       if (fileInfo.exists()) {
         if (fileInfo.size() < 1024 * 1024) {
           viewer->addFile(fileName, true);
         } else {
-           QMessageBox::warning(parentWidget(), tr("File too big"),
-                                tr("Sorry, the file %1 is too large"
-                                   " to be handled by the Ini Editor").arg(fileName));
+          QMessageBox::warning(parentWidget(), tr("File too big"),
+                               tr("Sorry, the file %1 is too large"
+                                  " to be handled by the Ini Editor")
+                                   .arg(fileName));
         }
       }
     }
@@ -131,7 +137,3 @@ void IniEditor::display() const
   }
 }
 
-
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-Q_EXPORT_PLUGIN2(iniEditor, IniEditor)
-#endif
