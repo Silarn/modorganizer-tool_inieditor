@@ -103,11 +103,18 @@ void IniEditor::display() const
   }
 
   QStringList iniFiles = m_MOInfo->managedGame()->iniFiles();
+
+  IProfile *profile = m_MOInfo->profile();
+
+  QString basePath
+      = profile->localSettingsEnabled()
+            ? profile->absolutePath()
+            : m_MOInfo->managedGame()->documentsDirectory().absolutePath();
+
   if (m_MOInfo->pluginSetting(name(), "external").toBool()) {
     for (QString const &file : iniFiles) {
 
-      QString fileName
-          = QString("%1/%2").arg(m_MOInfo->profilePath()).arg(file);
+      QString fileName = QString("%1/%2").arg(basePath).arg(file);
       ::ShellExecuteW(
           nullptr,
           m_MOInfo->pluginSetting(name(), "associated").toBool() ? L"open"
@@ -120,7 +127,7 @@ void IniEditor::display() const
         tr("Ini files are local to the currently selected profile."));
     for (QString const &file : iniFiles) {
       QString fileName
-          = QString("%1/%2").arg(m_MOInfo->profilePath()).arg(file);
+          = QString("%1/%2").arg(basePath).arg(file);
       QFileInfo fileInfo(fileName);
       if (fileInfo.exists()) {
         if (fileInfo.size() < 1024 * 1024) {
